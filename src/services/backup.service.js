@@ -43,7 +43,10 @@ class BackupService {
 
         return new Promise((resolve, reject) => {
             // Build mysqldump command with compression
-            const command = `mysqldump -h ${this.dbConfig.host} -P ${this.dbConfig.port} -u ${this.dbConfig.user} -p'${this.dbConfig.password}' ${this.dbConfig.name} | gzip > ${filepath}`;
+            // --skip-lock-tables: Bypass LOCK TABLES permission issues
+            // --no-tablespaces: Skip tablespace information (requires PROCESS privilege)
+            // --single-transaction: Consistent backup without locking tables
+            const command = `mysqldump -h ${this.dbConfig.host} -P ${this.dbConfig.port} -u ${this.dbConfig.user} -p'${this.dbConfig.password}' --skip-lock-tables --no-tablespaces --single-transaction ${this.dbConfig.name} | gzip > ${filepath}`;
 
             exec(command, (error, stdout, stderr) => {
                 if (error) {
