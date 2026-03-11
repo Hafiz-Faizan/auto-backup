@@ -19,6 +19,7 @@ async function runManualBackup() {
         if (result.success) {
             logger.info('Manual backup completed successfully');
             logger.info(`Backup file: ${result.filename}`);
+            logger.info(`S3 location: ${result.s3Location}`);
             logger.info(`Size: ${result.size} MB`);
             logger.info(`Total backups: ${result.totalBackups}`);
         } else {

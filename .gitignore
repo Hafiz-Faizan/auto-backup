@@ -1,7 +1,7 @@
 node_modules/
 .env
 *.log
-logs/*.log
+logs/
 *.sql
 *.sql.gz
 backups/

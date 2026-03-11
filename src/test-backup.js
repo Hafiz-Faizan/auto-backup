@@ -16,18 +16,31 @@ async function testBackup() {
         logger.info(`  Database Host: ${config.database.host}:${config.database.port}`);
         logger.info(`  Database Name: ${config.database.name}`);
         logger.info(`  Database User: ${config.database.user}`);
-        logger.info(`  Backup Path: ${config.backup.path}`);
+        logger.info(`  S3 Bucket: ${config.s3.bucket}`);
+        logger.info(`  S3 Prefix: ${config.s3.prefix}`);
+        logger.info(`  AWS Region: ${config.s3.region}`);
         logger.info(`  Retention Days: ${config.backup.retentionDays}`);
         logger.info(`  Cron Schedule: ${config.cron.schedule}`);
 
-        // Test 3: Check backup directory
-        logger.info('\nTest 3: Checking backup directory...');
-        const fs = require('fs').promises;
+        // Test 3: Test S3 connectivity
+        logger.info('\nTest 3: Testing S3 connectivity...');
+        const { S3Client, ListObjectsV2Command } = require('@aws-sdk/client-s3');
+        const s3Client = new S3Client({
+            region: config.s3.region,
+            credentials: {
+                accessKeyId: config.s3.accessKeyId,
+                secretAccessKey: config.s3.secretAccessKey
+            }
+        });
         try {
-            await fs.access(config.backup.path);
-            logger.info(`✓ Backup directory exists: ${config.backup.path}`);
-        } catch {
-            logger.info(`  Backup directory will be created: ${config.backup.path}`);
+            await s3Client.send(new ListObjectsV2Command({
+                Bucket: config.s3.bucket,
+                MaxKeys: 1
+            }));
+            logger.info(`✓ S3 bucket accessible: ${config.s3.bucket}`);
+        } catch (err) {
+            logger.error('✗ S3 connection failed:', err.message);
+            throw err;
         }
 
         // Test 4: Test MySQL connection
