@@ -14,7 +14,7 @@ async function testBackup() {
         // Test 2: Display configuration (without password)
         logger.info('\nTest 2: Configuration details:');
         logger.info(`  Database Host: ${config.database.host}:${config.database.port}`);
-        logger.info(`  Database Name: ${config.database.name}`);
+        logger.info(`  Database Names: ${config.database.names.join(', ')}`);
         logger.info(`  Database User: ${config.database.user}`);
         logger.info(`  S3 Bucket: ${config.s3.bucket}`);
         logger.info(`  S3 Prefix: ${config.s3.prefix}`);
@@ -43,22 +43,23 @@ async function testBackup() {
             throw err;
         }
 
-        // Test 4: Test MySQL connection
+        // Test 4: Test MySQL connection for each database
         logger.info('\nTest 4: Testing MySQL connection...');
         const { exec } = require('child_process');
-        const testCommand = `mysql -h ${config.database.host} -P ${config.database.port} -u ${config.database.user} -p'${config.database.password}' -e "SELECT 1" ${config.database.name}`;
-
-        await new Promise((resolve, reject) => {
-            exec(testCommand, (error, stdout, stderr) => {
-                if (error) {
-                    logger.error('✗ MySQL connection failed:', error.message);
-                    reject(error);
-                } else {
-                    logger.info('✓ MySQL connection successful');
-                    resolve();
-                }
+        for (const dbName of config.database.names) {
+            const testCommand = `mysql -h ${config.database.host} -P ${config.database.port} -u ${config.database.user} -p'${config.database.password}' -e "SELECT 1" ${dbName}`;
+            await new Promise((resolve, reject) => {
+                exec(testCommand, (error, stdout, stderr) => {
+                    if (error) {
+                        logger.error(`✗ MySQL connection failed for ${dbName}:`, error.message);
+                        reject(error);
+                    } else {
+                        logger.info(`✓ MySQL connection successful for ${dbName}`);
+                        resolve();
+                    }
+                });
             });
-        });
+        }
 
         logger.info('\n=== All Tests Passed ===');
         logger.info('You can now run the backup service with: npm start');

@@ -1,12 +1,19 @@
 require('dotenv').config();
 
+// Support multiple databases: DB_NAMES=db1,db2,db3 or single DB_NAME=defaultdb
+const dbNamesRaw = process.env.DB_NAMES || process.env.DB_NAME;
+const databaseNames = dbNamesRaw
+  ? dbNamesRaw.split(',').map(name => name.trim()).filter(Boolean)
+  : [];
+
 const config = {
   database: {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 3306,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    name: process.env.DB_NAME
+    name: process.env.DB_NAME, // deprecated, use databaseNames
+    names: databaseNames
   },
   backup: {
     retentionDays: parseInt(process.env.RETENTION_DAYS) || 7
@@ -31,7 +38,6 @@ function validateConfig() {
   const required = [
     'database.user',
     'database.password',
-    'database.name',
     's3.bucket',
     's3.accessKeyId',
     's3.secretAccessKey'
@@ -51,6 +57,10 @@ function validateConfig() {
       }
     }
   });
+
+  if (config.database.names.length === 0) {
+    missing.push('database.names (set DB_NAMES or DB_NAME)');
+  }
 
   if (missing.length > 0) {
     throw new Error(`Missing required configuration: ${missing.join(', ')}`);

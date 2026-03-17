@@ -18,12 +18,19 @@ async function runManualBackup() {
 
         if (result.success) {
             logger.info('Manual backup completed successfully');
-            logger.info(`Backup file: ${result.filename}`);
-            logger.info(`S3 location: ${result.s3Location}`);
-            logger.info(`Size: ${result.size} MB`);
-            logger.info(`Total backups: ${result.totalBackups}`);
+            for (const r of result.results || []) {
+                if (r.success) {
+                    logger.info(`  ${r.dbName}: ${r.filename} (${r.size} MB) -> ${r.s3Location}`);
+                }
+            }
+            logger.info(`Total backups in S3: ${result.totalBackups}`);
         } else {
-            logger.error('Manual backup failed:', result.error);
+            for (const r of result.results || []) {
+                if (!r.success) {
+                    logger.error(`  ${r.dbName}: ${r.error}`);
+                }
+            }
+            if (result.error) logger.error('Backup failed:', result.error);
             process.exit(1);
         }
 

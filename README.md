@@ -49,10 +49,11 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_USER=your_mysql_user
 DB_PASSWORD=your_mysql_password
-DB_NAME=your_database_name
+# Single database: DB_NAME=defaultdb
+# Multiple databases (comma-separated): DB_NAMES=defaultdb,db2,db3
+DB_NAMES=defaultdb,db2,db3
 
 # Backup Configuration
-BACKUP_PATH=/home/ubuntu/mysql-backups
 RETENTION_DAYS=7
 
 # Cron Schedule (Daily at 2 AM)
@@ -160,15 +161,17 @@ The `CRON_SCHEDULE` variable uses standard cron syntax:
 
 ## Backup File Format
 
-Backups are stored with the following naming convention:
+Backups are stored with the following naming convention (one file per database):
 
 ```
 <database_name>_<date>_<time>.sql.gz
 ```
 
-Example:
+Example (for multiple databases):
 ```
-mydb_2025-12-29_02-00-00.sql.gz
+defaultdb_2025-12-29_02-00-00.sql.gz
+db2_2025-12-29_02-00-00.sql.gz
+db3_2025-12-29_02-00-00.sql.gz
 ```
 
 ## Restore from Backup
@@ -222,9 +225,11 @@ Logs are stored in the `logs/` directory:
 
 1. Verify MySQL is running: `sudo systemctl status mysql`
 2. Check credentials in `.env` file
-3. Ensure user has proper permissions:
+3. Ensure user has proper permissions for each database:
    ```sql
    GRANT SELECT, LOCK TABLES ON database_name.* TO 'user'@'localhost';
+   -- For multiple databases:
+   GRANT SELECT, LOCK TABLES ON db1.*, db2.* TO 'user'@'localhost';
    FLUSH PRIVILEGES;
    ```
 
