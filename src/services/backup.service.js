@@ -47,7 +47,7 @@ class BackupService {
         logger.info(`Starting backup for database: ${dbName}`);
 
         return new Promise((resolve, reject) => {
-            const command = `mysqldump -h ${this.dbConfig.host} -P ${this.dbConfig.port} -u ${this.dbConfig.user} -p'${this.dbConfig.password}' --skip-lock-tables --no-tablespaces --single-transaction ${dbName} | gzip > ${filepath}`;
+            const command = `mysqldump -h ${this.dbConfig.host} -P ${this.dbConfig.port} -u ${this.dbConfig.user} -p'${this.dbConfig.password}' --skip-lock-tables --no-tablespaces --single-transaction --force ${dbName} | gzip > ${filepath}`;
 
             exec(command, (error, stdout, stderr) => {
                 if (error) {
